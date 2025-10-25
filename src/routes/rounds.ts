@@ -1,5 +1,5 @@
 import express from 'express';
-import { pool } from '../db.ts';
+import { pool } from '../db';
 import { expressjwt as jwt } from 'express-jwt';
 import jwksRsa from 'jwks-rsa';
 
