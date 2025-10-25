@@ -27,5 +27,15 @@
     "@types/uuid": "^10.0.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"
-  }
+  },
+    "compilerOptions": {
+      "target": "ES2020",
+      "module": "CommonJS",
+      "rootDir": "src",
+      "outDir": "dist",
+      "strict": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true
+    },
+    "include": ["src"]
 }
