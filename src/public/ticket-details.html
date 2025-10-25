@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalji Loto Listića</title>
+</head>
+<body>
+<h1>Detalji Listića</h1>
+
+<div class="info" id="ticketInfo">
+    <p>Učitavanje podataka...</p>
+</div>
+
+<script>
+    async function loadTicket() {
+      const params = new URLSearchParams(window.location.search);
+      const ticketUUID = params.get('id');
+
+      const infoDiv = document.getElementById('ticketInfo');
+      if (!ticketUUID) {
+        infoDiv.textContent = 'Nije predan UUID listića u URL-u.';
+        return;
+      }
+
+      try {
+        const res = await fetch(`/ticket/${ticketUUID}`);
+        if (!res.ok) {
+          infoDiv.textContent = 'Greška: ' + await res.text();
+          return;
+        }
+
+        const ticket = await res.json();
+
+        const numbers = Array.isArray(ticket.numbers) ? ticket.numbers : ticket.numbers.replace(/[{}]/g, '').split(',').map(n => n.trim());
+
+        const drawnNumbers = ticket.drawn_numbers ? (Array.isArray(ticket.drawn_numbers) ? ticket.drawn_numbers : ticket.drawn_numbers.replace(/[{}]/g, '').split(',').map(n => n.trim())) : null;
+
+        infoDiv.innerHTML = `<p><strong>UUID listića:</strong> ${ticket.id}</p>
+          <p><strong>Osobna iskaznica:</strong> ${ticket.personal_id}</p>
+          <p><strong>Brojevi listića:</strong> ${numbers.join(', ')}</p>
+          <p><strong>Izvučeni brojevi:</strong> ${drawnNumbers ? drawnNumbers.join(', ') : 'Još nisu izvučeni'}</p>
+          <p><strong>Aktivno kolo:</strong> ${ticket.active ? 'Da' : 'Ne'}</p>`;
+      } catch (err) {
+        infoDiv.textContent = 'Greška pri učitavanju podataka.';
+        console.error(err);
+      }
+    }
+
+    loadTicket();
+</script>
+</body>
+</html>

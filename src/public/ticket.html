@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8" />
+    <title>Uplata Loto Listića</title>
+</head>
+<body>
+<h1>Uplata Loto Listića</h1>
+
+<form id="ticketForm">
+    <label>Broj osobne iskaznice/putovnice (max 20 znakova)</label>
+    <input type="text" id="personalId" required maxlength="20" />
+
+    <label>6 do 10 brojeva (1-45), odvojeni zarezom</label>
+    <input type="text" id="numbers" placeholder="npr. 17,2,31,45,1,22" required />
+
+    <button type="submit">Uplati listić</button>
+</form>
+
+<div class="result" id="result"></div>
+
+<div class="back-button">
+    <a href="/"><button>Vrati se na početnu</button></a>
+</div>
+
+<script>
+    document.getElementById('ticketForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const personal_id = document.getElementById('personalId').value.trim();
+      values = document.getElementById('numbers').value.split(',')
+      const numbers = []
+      for (let i = 0; i < values.length; i++) {
+          const num = parseInt(parts[i].trim(), 10);
+          if (!isNaN(num)) {
+            numbers.push(num);
+          }
+      }
+
+      const resultDiv = document.getElementById('result');
+      resultDiv.textContent = 'Obrada uplate...';
+
+      try {
+        const res = await fetch('/ticket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ personal_id, numbers })
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          resultDiv.textContent = 'Greška: ' + text;
+          return;
+        }
+
+        const data = await res.json();
+        resultDiv.innerHTML = `<p>Uspješno uplaćen listić! ID: ${data.ticketID}</p>
+          <p>QR kod:</p>
+          <img src="${data.qrCode}" alt="QR kod listića" />`;
+      } catch (err) {
+        resultDiv.textContent = 'Greška pri komunikaciji sa serverom.';
+        console.error(err);
+      }
+    });
+</script>
+</body>
+</html>

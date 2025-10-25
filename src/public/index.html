@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8" />
+    <title>LOTO 6/45</title>
+</head>
+<body>
+<h1>LOTO 6/45</h1>
+
+<div class="info" id="userInfo">
+    <p>Provjera prijave...</p>
+</div>
+
+<div class="info">
+    <h3>Trenutno kolo</h3>
+    <p><strong>Broj uplaćenih listića:</strong> <span id="ticketCount">...</span></p>
+    <p><strong>Izvučeni brojevi:</strong> <span id="drawnNumbers">...</span></p>
+    <div id="ticketBtn"></div>
+</div>
+
+<script>
+    async function loadData() {
+      const userDiv = document.getElementById('userInfo');
+      let loggedIn = false;
+      let userName = '';
+
+      try {
+        const userRes = await fetch('/user');
+        const userData = await userRes.json();
+        loggedIn = userData.loggedIn;
+
+        if (loggedIn) {
+          userName = userData.user.name || userData.user.email;
+          userDiv.innerHTML = `
+            <p>Prijavljeni ste kao <strong>${userName}</strong></p>
+            <a href="/logout"><button>Odjava</button></a>
+          `;
+        } else {
+          userDiv.innerHTML = `
+            <p>Niste prijavljeni.</p>
+            <a href="/login"><button>Prijava</button></a>
+          `;
+        }
+      } catch (err) {
+        console.error('Greška pri provjeri prijave:', err);
+        userDiv.innerHTML = `<p>Greška pri provjeri prijave.</p>`;
+      }
+
+      try {
+        const res = await fetch('/rounds-info');
+        const data = await res.json();
+
+        document.getElementById('ticketCount').textContent = data.ticketCount ?? '';
+        document.getElementById('drawnNumbers').textContent = data.drawnNumbers ?? 'Još nisu izvučeni';
+
+        const ticketBtnDiv = document.getElementById('ticketBtn');
+        if (data.active) {
+          if (loggedIn) {
+            ticketBtnDiv.innerHTML = `
+              <a href="/ticket.html"><button>Uplati listić</button></a>`;
+          } else {
+            ticketBtnDiv.innerHTML = `
+              <p>Moraš se ulogirati kako bi uplatio listić.</p>`;
+          }
+        } else {
+          ticketBtnDiv.innerHTML = `<p>Kolo trenutno nije aktivno.</p>`;
+        }
+      } catch (err) {
+        console.error('Greška pri dohvaćanju podataka o kolu:', err);
+        document.getElementById('ticketCount').textContent = 'Greška';
+        document.getElementById('drawnNumbers').textContent = 'Greška';
+      }
+    }
+
+    loadData();
+</script>
+</body>
+</html>
