@@ -1,5 +1,5 @@
 import express from 'express';
-import { pool } from '../db.ts';
+import { pool } from '../db';
 import QRCode from 'qrcode';
 import { v4 as uuidv4 } from 'uuid';
 

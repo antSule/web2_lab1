@@ -12,4 +12,4 @@ export const pool = new Pool({
 
 pool.query('SELECT NOW()')
   .then(res => console.log('Database connected:', res.rows[0]))
-  .catch(err => console.error('Database connection error:', err.stack));
+  .catch((err: any) => console.error('Database connection error:', err.stack));
