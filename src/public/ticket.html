@@ -31,7 +31,7 @@
       values = document.getElementById('numbers').value.split(',')
       const numbers = []
       for (let i = 0; i < values.length; i++) {
-          const num = parseInt(parts[i].trim(), 10);
+          const num = parseInt(values[i].trim(), 10);
           if (!isNaN(num)) {
             numbers.push(num);
           }
