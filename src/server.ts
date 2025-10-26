@@ -11,11 +11,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const publicPath = path.join(process.cwd(), 'public');
-app.use(express.static(publicPath));
-
-app.use(express.json());
-
 app.use(
   auth({
     authRequired: false,
@@ -40,18 +35,13 @@ app.get('/user', (req, res) => {
 
 app.get('/rounds-info', async (req, res) => {
   try {
-    const roundResult = await pool.query(
-      'SELECT id, active, drawn_numbers FROM rounds ORDER BY id DESC LIMIT 1'
-    );
+    const roundResult = await pool.query('SELECT id, active, drawn_numbers FROM rounds ORDER BY id DESC LIMIT 1');
 
     if (roundResult.rowCount === 0)
       return res.json({ ticketCount: 0, drawnNumbers: '-', active: false });
 
     const round = roundResult.rows[0];
-    const ticketsRes = await pool.query(
-      'SELECT COUNT(*) FROM tickets WHERE round_id = $1',
-      [round.id]
-    );
+    const ticketsRes = await pool.query('SELECT COUNT(*) FROM tickets WHERE round_id = $1', [round.id]);
 
     res.json({
       ticketCount: ticketsRes.rows[0].count,
@@ -64,11 +54,14 @@ app.get('/rounds-info', async (req, res) => {
   }
 });
 
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+
 app.use('/', roundsRoutes);
 app.use('/', ticketRoutes);
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(publicPath, 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, () => {
