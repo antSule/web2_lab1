@@ -17,7 +17,7 @@ const checkJwt = jwt({
     algorithms: ['RS256']
 });
 
-router.post('/new-round', async (req, res) => {
+router.post('/new-round', checkJwt, async (req, res) => {
     try {
         await pool.query('BEGIN');
         await pool.query('UPDATE rounds SET active = FALSE WHERE active = TRUE');
@@ -30,7 +30,7 @@ router.post('/new-round', async (req, res) => {
     }
 });
 
-router.post('/close', async(req, res) => {
+router.post('/close', checkJwt, async(req, res) => {
     try {
         await pool.query('UPDATE rounds SET active = FALSE WHERE active = TRUE');
         res.status(204).send('Round closed successfully');
@@ -39,7 +39,7 @@ router.post('/close', async(req, res) => {
     }
 });
 
-router.post('/store-results', async (req, res) => {
+router.post('/store-results', checkJwt, async (req, res) => {
   const { numbers } = req.body;
 
   try {
