@@ -1,78 +1,103 @@
-<!DOCTYPE html>
-<html lang="hr">
+<!doctype html>
+<html>
 <head>
-    <meta charset="UTF-8" />
-    <title>LOTO 6/45</title>
+    <meta charset="utf-8">
+    <title>Ranjiva Aplikacija</title>
 </head>
 <body>
-<h1>LOTO 6/45</h1>
+<h1>Ranjiva aplikacija</h1>
 
-<div class="info" id="userInfo">
-    <p>Provjera prijave...</p>
-</div>
+<section id="controls">
+    <h2>Settings</h2>
+    <label><input type="checkbox" id="xssToggle">XSS uključen</label><br>
+    <label><input type="checkbox" id="sensitiveToggle">Nesigurna pohrana osjetljivih podataka uključena</label>
+</section>
 
-<div class="info">
-    <h3>Trenutno kolo</h3>
-    <p><strong>Broj uplaćenih listića:</strong> <span id="ticketCount">...</span></p>
-    <p><strong>Izvučeni brojevi:</strong> <span id="drawnNumbers">...</span></p>
-    <div id="ticketBtn"></div>
-</div>
+<section id="post">
+    <h2>Ostavi komentar</h2>
+    <form id="commentForm" method="POST" action="/comment">
+        <input name="author" placeholder="autor"><br>
+        <textarea name="text" placeholder="vaš komentar"></textarea><br>
+        <button type="submit">Objavi</button>
+    </form>
+</section>
+
+<h2>Objavljeni komentari</h2>
+<div id="comments"></div>
+
+<h2>Korisnici</h2>
+<table id="usersTable">
+    <thead><tr><th>username</th><th>email</th><th>password</th></tr></thead>
+    <tbody></tbody>
+</table>
 
 <script>
-    async function loadData() {
-      const userDiv = document.getElementById('userInfo');
-      let loggedIn = false;
-      let userName = '';
+    async function loadAll(){
+      const r = await fetch('/api/comments');
+      const j = await r.json();
+      const div = document.getElementById('comments');
+      div.innerHTML = '';
+      j.comments.forEach(c => {
+          const el = document.createElement('div');
+          el.className = 'comment';
 
-      try {
-        const userRes = await fetch('/user');
-        const userData = await userRes.json();
-        loggedIn = userData.loggedIn;
-
-        if (loggedIn) {
-          userName = userData.user.name || userData.user.email;
-          userDiv.innerHTML = `
-            <p>Prijavljeni ste kao <strong>${userName}</strong></p>
-            <a href="/logout"><button>Odjava</button></a>
+            el.innerHTML = `
+            <span class="comment-text"><strong>${escapeHtml(c.author)}</strong>: ${c.text}</span>
+            <button class="deleteBtn" data-id="${c.id}">Delete</button>
           `;
-        } else {
-          userDiv.innerHTML = `
-            <p>Niste prijavljeni.</p>
-            <a href="/login"><button>Prijava</button></a>
-          `;
-        }
-      } catch (err) {
-        console.error('Greška pri provjeri prijave:', err);
-        userDiv.innerHTML = `<p>Greška pri provjeri prijave.</p>`;
-      }
 
-      try {
-        const res = await fetch('/rounds-info');
-        const data = await res.json();
+          el.style.display = 'flex';
+          el.style.alignItems = 'center';
+          el.style.gap = '5px';
+          el.style.marginBottom = '5px';
 
-        document.getElementById('ticketCount').textContent = data.ticketCount ?? '';
-        document.getElementById('drawnNumbers').textContent = data.drawnNumbers ?? 'Još nisu izvučeni';
+          div.appendChild(el);
+        });
 
-        const ticketBtnDiv = document.getElementById('ticketBtn');
-        if (data.active) {
-          if (loggedIn) {
-            ticketBtnDiv.innerHTML = `
-              <a href="/ticket.html"><button>Uplati listić</button></a>`;
-          } else {
-            ticketBtnDiv.innerHTML = `
-              <p>Moraš se ulogirati kako bi uplatio listić.</p>`;
-          }
-        } else {
-          ticketBtnDiv.innerHTML = `<p>Kolo trenutno nije aktivno.</p>`;
-        }
-      } catch (err) {
-        console.error('Greška pri dohvaćanju podataka o kolu:', err);
-        document.getElementById('ticketCount').textContent = 'Greška';
-        document.getElementById('drawnNumbers').textContent = 'Greška';
-      }
+
+      document.getElementById('xssToggle').checked = !!j.settings.xss_enabled;
+      document.getElementById('sensitiveToggle').checked = !!j.settings.sensitive_enabled;
+
+      const ru = await fetch('/api/users');
+      const ju = await ru.json();
+      const tbody = document.querySelector('#usersTable tbody');
+      tbody.innerHTML = '';
+      ju.users.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td>' + escapeHtml(u.username) + '</td><td>' + escapeHtml(u.email) + '</td><td>' + escapeHtml(u.password) + '</td>';
+        tbody.appendChild(tr);
+      });
     }
 
-    loadData();
+    function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    document.addEventListener('change', async (e) => {
+      if (e.target.id === 'xssToggle'){
+        await fetch('/toggle', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ which: 'xss', value: e.target.checked }) });
+        loadAll();
+      }
+      if (e.target.id === 'sensitiveToggle'){
+        await fetch('/toggle', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ which: 'sensitive', value: e.target.checked }) });
+        loadAll();
+      }
+    });
+
+    document.addEventListener('click', async (e) => {
+      if (e.target.classList.contains('deleteBtn')) {
+        const id = e.target.dataset.id;
+        await fetch('/comment/' + id, { method: 'DELETE' });
+        loadAll();
+      }
+    });
+
+    async function showUsers(){
+      const r = await fetch('/api/users');
+      const j = await r.json();
+    }
+
+    window.showUsers = showUsers;
+    loadAll();
+
 </script>
 </body>
 </html>

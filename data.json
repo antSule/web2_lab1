@@ -1,0 +1,32 @@
+{
+  "settings": {
+    "xss_enabled": true,
+    "sensitive_enabled": true
+  },
+  "comments": [
+    {
+      "id": "4357b69b-f2d4-40cd-bfcb-d263557ee26f",
+      "author": "ante",
+      "text": "Evo moj komentar!"
+    },
+    {
+      "id": "cc51e9d2-9e8c-47b7-bab5-fd72896c8b92",
+      "author": "tomo",
+      "text": "A evo i moj!"
+    }
+  ],
+  "users": [
+    {
+      "id": "1",
+      "username": "ante",
+      "password": "nesigurna_lozinka",
+      "email": "ante@gmail.com"
+    },
+    {
+      "id": "2",
+      "username": "tomo",
+      "password": "pomalo",
+      "email": "tomo@gmail.com"
+    }
+  ]
+}
